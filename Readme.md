@@ -1,4 +1,4 @@
-# Bluetooth Hackathon
+# Micropython framework
 
 This is a collection of snippets and tools to implement Micropython for ESP32 boards. The idea is to implement emulators and relays with this technology.
 
