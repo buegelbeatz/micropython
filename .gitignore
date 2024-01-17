@@ -1,0 +1,8 @@
+/firmware
+.DS_Store
+/build
+.env
+env.py
+env.json
+webrepl_cfg.py
+__*

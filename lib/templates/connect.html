@@ -1,0 +1,154 @@
+{% include 'header.html' %}
+<style>
+    input, button, select {
+        width: 15em;
+    }
+    .wrapper {
+				width: 15em;
+			}
+			
+			.progress-bar {
+				width: 15em;
+				background-color: #e0e0e0;
+				padding: 3px;
+				border-radius: 3px;
+				box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);
+			}
+			
+			.progress-bar-fill {
+				display: block;
+				height: 22px;
+				background-color: #659cef;
+				border-radius: 3px;
+				
+				/*transition: width 500ms ease-in-out;*/
+			}
+</style>
+<div class="pure-g">
+
+    <div class="pure-u-1-24 pure-u-md-2-24 pure-u-xl-4-24"></div>
+    <div class="pure-u-22-24 pure-u-md-18-24 pure-u-xl-8-24">
+        <h1 class="content-subhead">{{title}}</h1>
+    </div>
+    <div class="pure-u-1-24 pure-u-md-4-24 pure-u-xl-12-24"></div>
+
+    <div class="pure-u-1-24 pure-u-md-2-24 pure-u-xl-4-24"></div>
+    <div class="pure-u-22-24 pure-u-md-18-24 pure-u-xl-8-24">
+        <h4 class="content-head">Connect to wifi...</h4>
+    </div>
+    <div class="pure-u-1-24 pure-u-md-4-24 pure-u-xl-12-24"></div>
+    
+    <div class="pure-u-1-24 pure-u-md-2-24 pure-u-xl-4-24"></div>
+    <div class="pure-u-22-24 pure-u-md-18-24 pure-u-xl-8-24">
+        <form class="pure-form pure-form-aligned">
+            <fieldset>
+
+                <div class="pure-control-group">
+                    <label for="network">Networks</label>
+                    <select id="ssid">
+                        {{networks_options}}
+                    </select>
+                    <span class="pure-form-message-inline">Select a network to connect</span>
+                </div>
+
+                <div class="pure-control-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="wifi-password" />
+                </div>
+
+                <div class="pure-controls">
+                <button id="send" type="button" class="pure-button pure-button-primary">Connect</button>
+                </div>
+
+                <div id="progressBar" class="pure-controls" style="display: none;">
+                    <div class="wrapper">
+                        <div class="progress-bar" >
+                            <span id="progressPercent" class="progress-bar-fill" style="width: 0%;"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="feedback" class="pure-controls" style="display: none;">
+                    <div class="wrapper">
+                        <h3 id="message">Done</h3>
+                    </div>
+                </div>
+
+            </fieldset>
+        </form>
+    </div>
+    <div class="pure-u-1-24 pure-u-md-4-24 pure-u-xl-12-24"></div>
+    <script src="/static/websocket.js?ts={{ts}}" crossorigin="anonymous"></script>
+    <script>
+
+        // create some dictionary here
+        const sendButton = document.getElementById('send');
+        const feedback = document.getElementById('feedback');
+        const message = document.getElementById('message');
+        const passwordField = document.getElementById('password');
+        const ssidField = document.getElementById('ssid');
+        const progressBar = document.getElementById('progressBar');
+        const progressPercent = document.getElementById('progressPercent');
+
+        const callback = (data) => {
+            console.log(data)
+            if (data && data.action && data.action == 'connect'){
+                feedback.style.display = 'block';
+                progressBar.style.display = 'none';
+                message.innerText = data
+                passwordField.disabled = false;
+                ssidField.disabled = false;
+            }
+        }
+
+        const ws = new WebsocketWrapper("ws://{{ip}}/ws", callback); 
+
+        sendButton.disabled = true;
+
+        const _check = () => {
+            if(ssidField.value == 0){
+                sendButton.disabled = true;
+                return
+            }
+            if(passwordField.value.length < 5){
+                sendButton.disabled = true;
+                return
+            }
+            sendButton.disabled = false;
+        }
+
+        const _progress_bar = () => {
+            progressBar.style.display = 'block';
+            _start = 0;
+            const _progress = setInterval(() => {
+                _start++;
+                progressPercent.style.width = _start + '%';
+                if(_start >= 100) {
+                    clearInterval(_progress)
+                    progressBar.style.display = 'none';
+                    progressPercent.style.width = '0%';
+                    _start = 0;
+                    // TODO: Doing a refresh of the page?
+                }
+            }, 200);
+        }
+
+        const _send = () => {
+            sendButton.disabled = true;
+            passwordField.disabled = true;
+            ssidField.disabled = true;
+            _progress_bar()
+            const _send = new Object();
+            _send['action'] = 'connect';
+            _send['ssid'] = ssidField.value;
+            _send['password'] = passwordField.value;
+            ws.send(_send)
+        }
+
+        passwordField.addEventListener("keydown", _check);
+        ssidField.addEventListener("change", _check);
+        sendButton.addEventListener("click", _send);
+
+    </script>
+</div>
+{% include 'footer.html' %}

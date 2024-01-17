@@ -1,0 +1,36 @@
+ble/uart_central.py
+ble/uart_service.py
+ble/base.py
+ble/central.py
+
+display/st7789py.py
+display/ttgo.py
+display/romfonts/vga2_8x16.py
+
+connector/__init__.py
+# connector/crypto.py
+connector/dns.py
+connector/environment.py
+
+templates/header.html
+templates/footer.html
+templates/connect.html
+
+static/websocket.js
+static/pure-min.css
+static/grids-responsive-min.css
+# static/jquery-3.6.4.min.js
+static/favicon.ico
+
+http/base.py
+http/request.py
+http/cache.py
+http/static.py
+http/root.py
+http/template.py
+http/connect.py
+http/websocket.py
+
+tools.py
+boot.py
+

@@ -1,0 +1,28 @@
+{% include 'header.html' %}
+<div id="layout" class="pure-g">
+<h1 class="content-subhead">{{title}}</h1>
+<div class="content pure-u-1 pure-u-md-3-4">
+<table class="joystick"><tr><td></td><td id="top">
+<button class="pure-button">^</button>
+</td><td></td></tr><tr><td id="left">
+<button class="pure-button">&lt;</button>
+</td><td id="button">
+<button class="pure-button">O</button>
+</td><td id="right">
+<button class="pure-button">&gt;</button>
+</td></tr><tr><td></td><td id="down">
+<button class="pure-button">v</button>
+</td><td></td></tr></table>
+<form class="pure-form" readonly="">
+<fieldset class="pure-group">
+<textarea id='log' class="pure-input-1-2" placeholder=""></textarea>
+</fieldset>
+</form>
+<script src="/static/websocket.js?ts={{ts}}" crossorigin="anonymous"></script>
+<script>
+const callback = (data) => console.log;
+const ws = new WebsocketWrapper("ws://{{ip}}/ws", callback); 
+</script>
+</div>
+</div>
+{% include 'footer.html' %}
