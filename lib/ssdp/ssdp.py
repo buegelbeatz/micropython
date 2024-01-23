@@ -2,10 +2,10 @@ import re
 
 from ssdp.upnp import Upnp
 from ssdp.tcp import Tcp
-from ssdp.tools import wrapper, date, format_str
+from ssdp.tools import wrapper, date, format_str, dict_exclude, dict_include, load_from_path
 from debugger import Debugger
 
-debug = Debugger(color_schema='cyan')
+debug = Debugger(color_schema='cyan',tab=1)
 debug.active = True
 
 class Ssdp(Tcp,Upnp):
@@ -13,55 +13,57 @@ class Ssdp(Tcp,Upnp):
     _tcp_handler = []
 
     SSDP_DISCOVER = 'ssdp:discover'
+    SSDP_BYEBYE = 'ssdp:byebye'
+    SSDP_ALIVE = 'ssdp:alive'
+    SSD_SEARCH_HEADER = 'M-SEARCH * HTTP/1.1'
 
     @debug.show
-    def __init__(self,**kwargs):
-        self.discover_patterns = kwargs['discover_patterns']
-        self.m_search_response = kwargs['m_search_response']
-        self.setup_answer = kwargs['setup_answer']
-        self.eventservice_answer = kwargs['eventservice_answer']
-        Tcp.__init__(self, kwargs['ip'], kwargs['tcp_port'])
-        Upnp.__init__(self, kwargs['ip'], kwargs['notification_type'], kwargs['unique_service_name'])
+    def __init__(self, **kwargs): # nls, service
+        self._ssdp_child = dict_include('setup_path_pattern', 'event_path_pattern', 'user_agent', 'server', 'discover_patterns',  **kwargs)
+        Tcp.__init__(self, **dict_include('ip', 'tcp_port', **kwargs))
+        Upnp.__init__(self, **dict_include('ip', 'tcp_port', 'cache', 'server', 'notification_type', 'notification_sub_type', **kwargs))
+        self.m_search_response = format_str(load_from_path(kwargs['m_search_response']), **dict_include('nls', 'service', 'udn',  **kwargs))
+        self.xml_header = load_from_path(kwargs['xml_header']).replace('\n', '\r\n')
+        _setup_xml = format_str(load_from_path(kwargs['setup_answer']), **dict_include('name','udn', 'service', **kwargs)).replace('\n', '\r\n')
+        self.setup_answer = format_str(self.xml_header, **{'length': len(_setup_xml)}) + _setup_xml
+        _eventservice_answer = load_from_path(kwargs['eventservice_answer']).replace('\n', '\r\n')
+        self.eventservice_answer = format_str(self.xml_header, **{'length': len(_eventservice_answer)}) + _eventservice_answer
 
     @debug.show
     def _ssdpSend(self, **data):
-        _params = super(Upnp,self).items() #Upnp.items(self)
-        _params['date'] = date()
-        _params['st'] = data['st']
-        _message = format_str(self.m_search_response, **_params)
+        _params = {'data': date(), 'st': data['st']}
+        _message = format_str(self.m_search_response, **_params, **self._ssdp_child)
         Upnp.upnpSend(self, template=_message, address=(data['_REFERER']['ip'],data['_REFERER']['port']))
 
-    @debug.show
+    
     @Upnp.upnpEvent
-    def _trigger_ssdp_event(self, data, alive, byebye):
-        if alive:
-            Upnp.upnpSend(None,notification_sub_type='ssdp:alive')
-        if byebye:
-            Upnp.upnpSend(None,notification_sub_type='ssdp:byebye')
-        if data:
-            if data['_CMD'] == 'M-SEARCH * HTTP/1.1' and data['man'] and data['st']:
-                _discover = '|'.join(self.discover_patterns).replace("*",r"\*")
-                _pattern = f"^.*({_discover}).*$"
-                if re.match(f"^.*({Ssdp.SSDP_DISCOVER}).*$", data['man']) and re.match(_pattern, data['st']):
-                    self._ssdpSend(**data)
-
     @debug.show
+    def _trigger_ssdp_event(self, alive, byebye, **kwargs):
+        if alive:
+            Upnp.upnpSend(None,notification_sub_type=Ssdp.SSDP_BYEBYE)
+        if byebye:
+            Upnp.upnpSend(None,notification_sub_type=Ssdp.SSDP_ALIVE)
+        if kwargs is not None:
+            if kwargs['_CMD'] == Ssdp.SSD_SEARCH_HEADER and kwargs['man'] and kwargs['st']:
+                _discover = '|'.join(self._ssdp_child['discover_patterns']).replace("*",r"\*")
+                _pattern = f"^.*({_discover}).*$"
+                if re.match(f"^.*({Ssdp.SSDP_DISCOVER}).*$", kwargs['man']) and re.match(_pattern, kwargs['st']):
+                    self._ssdpSend(**kwargs)
+
+    
     @Tcp.tcpEvent
-    def _trigger_ssdp_tcp_event(self, uri, body):
-        _answer = None
-        if re.match(r"^.*setup\.xml$",uri):
-            _answer = self.setup_answer
-        if re.match(r"^.*eventservice\.xml$",uri):
-            _answer = self.eventservice_answer
+    @debug.show
+    def _trigger_ssdp_tcp_event(self, uri, body=None):
+        _payload = {"date": date()}
+        if re.match(self._ssdp_child['setup_path_pattern'],uri): 
+            return format_str(self.setup_answer,**_payload, **self._ssdp_child)
+        if re.match(self._ssdp_child['event_path_pattern'],uri):
+            return format_str(self.eventservice_answer,**_payload, **self._ssdp_child)
         if body:
             for _handler in Ssdp._tcp_handler:
                 _answer = _handler(self, body)
                 if _answer:
-                    break
-        return format_str(_answer, **{
-            "date": date(),
-            'user_agent': Upnp.UPNP_USER_AGENT,
-            'server': Upnp.UPNP_SERVER})
+                    return format_str(_answer, **_payload, **self._ssdp_child)
 
     @debug.show
     def tcpEvent(func):

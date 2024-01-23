@@ -12,6 +12,14 @@ def format_str(source, **kwargs):
         source = source.replace(_replace, str(value))
     return source
 
+# async def format_str_stream(source, **kwargs): # TODO: Could also be streamed: load_from_path_stream
+#     _parameter_pattern = re.compile(r"^.*\{[^\s]+\}.*$")
+#     for _line in source.split('\n'):
+#         if len(_line) > 0 and _parameter_pattern.match(_line):
+#             yield format_str(_line, **kwargs)
+#         else:
+#             yield _line
+
 def get_mac():
     return ubinascii.hexlify(machine.unique_id()).decode()
 
@@ -54,3 +62,9 @@ def date():
             'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][timetuple[1] - 1],
         timetuple[0], timetuple[3], timetuple[4], timetuple[5],
         'GMT')
+
+def dict_include(*args, **kwargs):
+    return {k:v for (k,v) in kwargs.items() if k in args}
+
+def dict_exclude(*args, **kwargs):
+    return {k:v for (k,v) in kwargs.items() if k not in args}

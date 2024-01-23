@@ -20,6 +20,7 @@ async def main():
     #         print(f"client '{remove}' left the network")
 
     _obj = Belkin(ip=connection.ip,tcp_port=80,name='testlampe')
+    print(_obj)
 
 
 

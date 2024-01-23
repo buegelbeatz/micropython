@@ -338,6 +338,7 @@ deploy(){
     export RSHELL_PORT=${device}
     echo "Upload files ..."
     rshell --port ${device} --buffer-size 30 -a  --file <( echo "echo" ; \
+      echo "# rm -r /pyboard/*" ; \
       echo "rsync --mirror --all . /pyboard" ) 
     cd ${current_folder}
     rm -rf ${backup_folder}/ 2>/dev/null

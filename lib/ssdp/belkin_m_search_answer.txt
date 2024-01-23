@@ -6,6 +6,7 @@ LOCATION: http://{ip}:{tcp_port}/setup.xml
 OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
 01-NLS: {nls}
 SERVER: {server}
-ST: {st}
-USN: uuid:Socket-1_0-{nls}::{st}
+ST: {service}
+USN: {udn}::{service}
 X-User-Agent: {user_agent}
+

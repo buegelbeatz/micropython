@@ -17,6 +17,6 @@ ssdp/belkin.py
 
 tools.py
 boot.py
-# debug.py
 debugger.py
+error.py
 
