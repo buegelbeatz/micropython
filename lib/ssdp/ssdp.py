@@ -2,11 +2,11 @@ import re
 
 from ssdp.upnp import Upnp
 from ssdp.tcp import Tcp
-from ssdp.tools import wrapper, date, format_str, dict_exclude, dict_include, load_from_path
+from ssdp.tools import wrapper, date, format_str, dict_exclude, dict_include, load_from_path, get_mac
 from debugger import Debugger
 
 debug = Debugger(color_schema='cyan',tab=1)
-debug.active = True
+# debug.active = True
 
 class Ssdp(Tcp,Upnp):
 
@@ -19,15 +19,16 @@ class Ssdp(Tcp,Upnp):
 
     @debug.show
     def __init__(self, **kwargs): # nls, service
-        self._ssdp_child = dict_include('setup_path_pattern', 'event_path_pattern', 'user_agent', 'server', 'discover_patterns',  **kwargs)
+        self._ssdp_child = dict_include('setup_path_pattern', 'user_agent', 'server', 'discover_patterns',  **kwargs)
         Tcp.__init__(self, **dict_include('ip', 'tcp_port', **kwargs))
         Upnp.__init__(self, **dict_include('ip', 'tcp_port', 'cache', 'server', 'notification_type', 'notification_sub_type', **kwargs))
         self.m_search_response = format_str(load_from_path(kwargs['m_search_response']), **dict_include('nls', 'service', 'udn',  **kwargs))
         self.xml_header = load_from_path(kwargs['xml_header']).replace('\n', '\r\n')
-        _setup_xml = format_str(load_from_path(kwargs['setup_answer']), **dict_include('name','udn', 'service', **kwargs)).replace('\n', '\r\n')
+        _setup_xml = format_str(
+                        load_from_path(kwargs['setup_answer']),
+                        mac=get_mac(),
+                        **dict_include('name','udn','ip', 'tcp_port', 'service', **kwargs)).replace('\n', '\r\n')
         self.setup_answer = format_str(self.xml_header, **{'length': len(_setup_xml)}) + _setup_xml
-        _eventservice_answer = load_from_path(kwargs['eventservice_answer']).replace('\n', '\r\n')
-        self.eventservice_answer = format_str(self.xml_header, **{'length': len(_eventservice_answer)}) + _eventservice_answer
 
     @debug.show
     def _ssdpSend(self, **data):
@@ -57,13 +58,10 @@ class Ssdp(Tcp,Upnp):
         _payload = {"date": date()}
         if re.match(self._ssdp_child['setup_path_pattern'],uri): 
             return format_str(self.setup_answer,**_payload, **self._ssdp_child)
-        if re.match(self._ssdp_child['event_path_pattern'],uri):
-            return format_str(self.eventservice_answer,**_payload, **self._ssdp_child)
-        if body:
-            for _handler in Ssdp._tcp_handler:
-                _answer = _handler(self, body)
-                if _answer:
-                    return format_str(_answer, **_payload, **self._ssdp_child)
+        for _handler in Ssdp._tcp_handler:
+            _answer = _handler(self, uri, body)
+            if _answer:
+                return format_str(_answer, **_payload, **self._ssdp_child)
 
     @debug.show
     def tcpEvent(func):

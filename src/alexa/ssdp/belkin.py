@@ -1,1 +1,0 @@
-../../../lib/ssdp/belkin.py

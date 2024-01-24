@@ -1,7 +1,6 @@
 import uasyncio
 import connector
 
-from ssdp.hue import Hue
 
 import tools
 import gc
@@ -11,15 +10,7 @@ async def main():
     connection = await connector.Connector()
     tools.elapsed_time('connector done')
 
-    hue = Hue(ip=connection.ip,tcp_port=80)
-    hue.devices.add('Buerolampe1')
-    hue.devices.add('Buerolampe2')
-    hue.devices.add('Buerolampe3')
-    
-    @hue.hueEvent
-    def hue_event(name, type, payload):
-        print(name, type, payload)
-        # TODO: Setup mqtt connector
+    # TODO: insert code
 
     tools.elapsed_time('server done')
 

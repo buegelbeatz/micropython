@@ -3,17 +3,26 @@ connector/__init__.py
 connector/dns.py
 connector/environment.py
 
-ssdp/belkin_eventservice_answer.xml
-ssdp/belkin_m_search_answer.txt
-ssdp/belkin_setup_answer.xml
-ssdp/belkin_upn_control_basicevent1_answer.xml
-ssdp/belkin_xml_header.txt
 ssdp/tools.py
 ssdp/udp.py
 ssdp/upnp.py
 ssdp/tcp.py
 ssdp/ssdp.py
-ssdp/belkin.py
+
+#ssdp/belkin_eventservice_answer.xml
+#ssdp/belkin_m_search_answer.txt
+#ssdp/belkin_setup_answer.xml
+#ssdp/belkin_upn_control_basicevent1_answer.xml
+#ssdp/belkin_xml_header.txt
+#ssdp/belkin.py
+
+ssdp/hue_device.json
+ssdp/hue_m_search_answer.txt
+ssdp/hue_setup_answer.xml
+ssdp/hue_xml_header.txt
+ssdp/hue_json_header.txt
+ssdp/hue_devices.py
+ssdp/hue.py
 
 tools.py
 boot.py

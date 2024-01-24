@@ -1,13 +1,9 @@
 HTTP/1.1 200 OK
-HOST: {host}
 CACHE-CONTROL: max-age={cache}
-DATE: {date}
 EXT:
-LOCATION: http://{ip}:{tcp_port}/upnp/amazon-ha-bridge/setup.xml
-hue-bridgeid: {bridge_uuid}
-# OPT: "http://schemas.upnp.org/upnp/1/0/"; ns=01
-# 01-NLS: {nls}
+LOCATION: http://{ip}:{tcp_port}/description.xml
 SERVER: {server}
-ST: {st}
-USN: uuid:Socket-1_0-{nls}::{st}
-# X-User-Agent: {user_agent}
+ST: urn:schemas-upnp-org:device:basic:1
+USN: {udn}::upnp:rootdevice
+hue-bridgeid: {mac}
+

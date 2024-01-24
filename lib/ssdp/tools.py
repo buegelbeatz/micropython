@@ -68,3 +68,6 @@ def dict_include(*args, **kwargs):
 
 def dict_exclude(*args, **kwargs):
     return {k:v for (k,v) in kwargs.items() if k not in args}
+
+def enum(**enums: int):
+    return type('Enum', (), enums)

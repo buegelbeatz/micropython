@@ -37,8 +37,8 @@ class Belkin(Ssdp):
                            setup_answer=Belkin.SETUP_ANSWER,
                            xml_header=Belkin.XML_HEADER,
                            setup_path_pattern=r"^.*setup\.xml$",
-                           eventservice_answer=Belkin.EVENT_SERVICE_ANSWER,
-                           event_path_pattern=r"^.*eventservice\.xml$",
+                           #eventservice_answer=Belkin.EVENT_SERVICE_ANSWER,
+                           #event_path_pattern=r"^.*eventservice\.xml$",
                            ip=ip,
                            tcp_port=tcp_port,
                            user_agent= Belkin.USER_AGENT,
@@ -47,12 +47,16 @@ class Belkin(Ssdp):
                            cache=Belkin.CACHE_TIME,
                            discover_patterns=["urn:Belkin:device:**","upnp:rootdevice","ssdp:all"], # man: input st: output
                            notification_type="urn:Belkin:device:**")
+        _eventservice_answer = load_from_path(Belkin.EVENT_SERVICE_ANSWER).replace('\n', '\r\n')
+        self.eventservice_answer = format_str(self.xml_header, **{'length': len(_eventservice_answer)}) + _eventservice_answer
 
     
     @Ssdp.tcpEvent
     @debug.show
-    def ssdp_request(self,body):
+    def ssdp_request(self, uri, body):
         # TODO: error handling
+        if re.match(r"^.*eventservice\.xml$",uri):
+            return self.eventservice_answer
         _match = self.action_service_regexp.search(body)
         _action, _service = _match.group(1), _match.group(2)
         _match = self.binary_state_regexp.search(body)

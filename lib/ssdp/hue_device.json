@@ -1,0 +1,22 @@
+{
+    "type": "Extended color light",
+    "name": "{name}",
+    "uniqueid": "{id}",
+    "modelid": "LCT015",
+    "manufacturername": "Philips",
+    "productname": "E4",
+    "state": {
+        "on": {on},
+        "bri": {bri},
+        "hue": {hue},
+        "sat": {sat},
+        "ct": {ct},
+        "xy": [{x},{y}],
+        "effect": "none",
+        "alert": "none",
+        "colormode": "{colormode}",
+        "mode": "homeautomation",
+        "reachable": true
+    },
+    "swversion": "66012040"
+}

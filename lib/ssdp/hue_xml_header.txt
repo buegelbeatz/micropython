@@ -1,0 +1,8 @@
+HTTP/1.1 200 OK
+CONTENT-LENGTH: {length}
+CONTENT-TYPE: text/xml
+DATE: {date}
+LAST-MODIFIED: Sat, 01 Jan 2000 00:01:15 GMT
+SERVER: {server}
+CONNECTION: close
+

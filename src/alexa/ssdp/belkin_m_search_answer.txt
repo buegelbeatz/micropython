@@ -1,1 +1,0 @@
-../../../lib/ssdp/belkin_m_search_answer.txt

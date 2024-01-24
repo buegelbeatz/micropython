@@ -10,13 +10,13 @@ from debugger import Debugger
 import error
 
 debug = Debugger(color_schema='blue',tab=3)
-debug.active = True
+# debug.active = True
 
 class Udp:
 
     UDP_MESSAGE_FREQUENCY_MS = 3000
-    UDP_LOOP_DELAY_MS = 1000
-    UDP_BUFFER_SIZE_BYTES = 512
+    UDP_LOOP_DELAY_MS = 500
+    UDP_BUFFER_SIZE_BYTES = 1024
 
     _udp_handler = []
 
@@ -67,13 +67,11 @@ class Udp:
         try:
             while True:
                 await uasyncio.sleep_ms(Udp.UDP_LOOP_DELAY_MS)
-                data = b''
-                address = None
+                data, address = None, None
                 try:
                     data, address =  self._udp_receive_socket.recvfrom(Udp.UDP_BUFFER_SIZE_BYTES)
-                except OSError as e:
-                    if e.args[0] != 11:  # Ignore EAGAIN error (no data available)
-                        raise
+                except Exception as e:
+                    pass
 
                 # Take care, that the exactly same broadcast is not evaluated to often in a high frequency
                 if data:
@@ -91,6 +89,7 @@ class Udp:
                         _received[_key] = _time
 
                     # Deligate the incoming data to upnp
+                if data:
                     self._trigger_udp_event(data,address,None,None)
                 
         except KeyboardInterrupt:
