@@ -152,10 +152,11 @@ class Debugger:
                 self.showDict(**kwargs)
                 self._reset()
             _start = time.ticks_ms()
+            # print('#',func,args,kwargs)
             _result = func(*args, **kwargs)
             if self.active:
                 self.timer(_start, 'total')
-                self.log(_result)
+                self.showDict(**{'result':_result})
             return _result
         return wrapper
     

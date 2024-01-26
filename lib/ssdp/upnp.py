@@ -3,7 +3,7 @@ from ssdp.udp import Udp
 from debugger import Debugger
 
 debug = Debugger(color_schema='magenta',tab=2)
-# debug.active = True
+#debug.active = True
 
 class Upnp(Udp):
 

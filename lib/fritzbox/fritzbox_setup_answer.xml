@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<root>
+    <device>
+        <deviceType>urn:Belkin:device:controllee:1</deviceType>
+        <friendlyName>{name}</friendlyName>
+        <manufacturer>Belkin International Inc.</manufacturer>
+        <manufacturerURL>http://github.com/buegelbeatz</manufacturerURL>
+        <modelName>Socket</modelName>
+        <modelNumber>1.0</modelNumber>
+        <modelURL>http://github.com/buegelbeatz/micropython_framework/lib/ssdp</modelURL>
+        <modelDescription>Wemore Emulated Socket</modelDescription>
+        <UDN>{udn}</UDN>
+        <UPC>123456789</UPC>
+        <serialNumber>221517F0101C00</serialNumber>
+        <binaryState>0</binaryState>
+        <serviceList>
+            <service>
+                <serviceType>{service}</serviceType>
+                <serviceId>urn:Belkin:serviceId:basicevent1</serviceId>
+                <controlURL>/upnp/control/basicevent1</controlURL>
+                <eventSubURL>/upnp/event/basicevent1</eventSubURL>
+                <SCPDURL>/eventservice.xml</SCPDURL>
+            </service>
+        </serviceList>
+    </device>
+</root>

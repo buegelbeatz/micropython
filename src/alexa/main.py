@@ -1,7 +1,7 @@
 import uasyncio
 import connector
 
-from ssdp.hue import Hue
+from alexa.hue import Hue
 
 import tools
 import gc

@@ -3,16 +3,16 @@ import usocket as socket
 import uasyncio
 import sys
 import ubinascii
-import utime as time
-import uhashlib as hashlib
+
+from ssdp.base import Base
 
 from debugger import Debugger
 import error
 
 debug = Debugger(color_schema='blue',tab=3)
-# debug.active = True
+#debug.active = True
 
-class Udp:
+class Udp(Base):
 
     UDP_MESSAGE_FREQUENCY_MS = 3000
     UDP_LOOP_DELAY_MS = 500
@@ -20,17 +20,16 @@ class Udp:
 
     _udp_handler = []
 
-    def _inet_aton(self,addr):
-        return bytes(map(int, addr.split('.')))
-
     @debug.show
-    def __init__(self, **kwargs):
-        self._upd_child = kwargs
+    def __init__(self, udp_port=1900, udp_ip="239.255.255.250", ip=None):
+        Base.__init__(self)
+        self.stopped = False
+        self.broadcast_address = (udp_ip, udp_port)
         self._udp_receive_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self._udp_receive_socket.bind(socket.getaddrinfo("0.0.0.0", self._upd_child['udp_port'], socket.AF_INET, socket.SOCK_DGRAM)[0][4])
+        self._udp_receive_socket.bind(socket.getaddrinfo("0.0.0.0", udp_port, socket.AF_INET, socket.SOCK_DGRAM)[0][4])
         self._udp_receive_socket.setblocking(False)
-        group_address = self._inet_aton(self._upd_child['udp_ip']) + self._inet_aton(self._upd_child['ip'])
-        self._udp_receive_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, group_address)
+        _group_address = self.inet_aton(udp_ip) + self.inet_aton(ip)
+        self._udp_receive_socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, _group_address)
         self._udp_send_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         uasyncio.create_task(self._udp_loop())
 
@@ -38,7 +37,7 @@ class Udp:
     @debug.show
     def udpSend(self, message, addr=None):
         """Sending data to the network"""
-        self._udp_send_socket.sendto(message.encode(), addr if addr else (self._upd_child['udp_ip'], self._upd_child['udp_port']))
+        self._udp_send_socket.sendto(message.encode(), addr if addr else self.broadcast_address)
 
     @debug.show
     def _trigger_udp_event(self, data, address, alive, byebye):
@@ -62,10 +61,11 @@ class Udp:
     async def _udp_loop(self):
         """Receiving udp messages and deligate them to the surrounding upnp instance"""
         await uasyncio.sleep_ms(Udp.UDP_LOOP_DELAY_MS)
-        _received = {}
         self._trigger_udp_event(None,None,True,None)
         try:
             while True:
+                if self.stopped:
+                    break
                 await uasyncio.sleep_ms(Udp.UDP_LOOP_DELAY_MS)
                 data, address = None, None
                 try:
@@ -73,24 +73,9 @@ class Udp:
                 except Exception as e:
                     pass
 
-                # Take care, that the exactly same broadcast is not evaluated to often in a high frequency
                 if data:
-                    _hash = hashlib.md5(data)
-                    _key = ubinascii.hexlify(_hash.digest()).decode()
-                    _time = time.ticks_ms()
-                    if _key in _received:
-                        if _time - _received[_key] < Udp.UDP_MESSAGE_FREQUENCY_MS:
-                            _received[_key] = _time
-                            debug.log('.',end='')
-                            continue
-                        else:
-                            del(_received[_key])
-                    else:
-                        _received[_key] = _time
-
-                    # Deligate the incoming data to upnp
-                if data:
-                    self._trigger_udp_event(data,address,None,None)
+                    if not self.request_frequence_check(data, Udp.UDP_MESSAGE_FREQUENCY_MS):
+                        self._trigger_udp_event(data,address,None,None)
                 
         except KeyboardInterrupt:
             self._trigger_udp_event(None,None,None,True)

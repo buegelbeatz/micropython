@@ -1,1 +1,0 @@
-../../../lib/ssdp/hue_m_search_answer.txt

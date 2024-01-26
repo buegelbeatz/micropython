@@ -10,11 +10,11 @@ from debugger import Debugger
 import error
 
 debug = Debugger(color_schema='green')
-debug.active = True
+# debug.active = True
 
 class Hue(Ssdp):
 
-    _tcp_handler = []
+    _hue_tcp_handler = []
 
     TEMLATES_ROOT = "/ssdp/hue_"
     M_SEARCH_ANSWER = f"{TEMLATES_ROOT}m_search_answer.txt" # ip, tcp_port, mac, server, cache, udn
@@ -52,30 +52,32 @@ class Hue(Ssdp):
                         cache=Hue.CACHE_TIME,
                         discover_patterns=["device:basic:1","upnp:rootdevice","ssdp:all"], # man: input st: output
                         notification_type="urn:schemas-upnp-org:device:**")
+        self._trigger_hue_event(None,'setUpnp',True)
 
     @debug.show
-    def hueEvent(func):
-        Hue._tcp_handler.append(func)
+    def hueEvent(self,func):
+        Hue._hue_tcp_handler.append(func)
         return func
 
     @debug.show
     def _trigger_hue_event(self, name, type, payload=None):
-        if len(Hue._tcp_handler) > 0:
-            for _handler in Hue._tcp_handler:
-                _answer = _handler(self, name, type, payload)
+        if len(Hue._hue_tcp_handler) > 0:
+            for _handler in Hue._hue_tcp_handler:
+                _answer = _handler(name, type, payload) # NO self here, decorator live outside of class hierachy
                 if _answer:
                     return _answer
-                
+    
+    @Ssdp.ssdpEvent
     @debug.show
-    @Ssdp.tcpEvent
     def ssdp_request(self,uri, body):
         """https://github.com/bwssytems/ha-bridge/blob/master/README.md"""
-
-        # print(uri, body)
-
+        if not uri and body:
+            _body = body if type(body) is not str else json.load(body)
+            if 'upnp' in _body:
+                self._trigger_hue_event(None,'setUpnp',_body['upnp'])
+                return
         _payload = None
         _match = self.lights_pattern_regexp.search(uri)
-        # print(_match, Hue.LIGHTS_PATTERN_REGEXP_USER, Hue.LIGHTS_PATTERN_REGEXP_LIGHT, Hue.LIGHTS_PATTERN_REGEXP_STATE)
         if _match: # something related to lights
             _user = _match.group(Hue.LIGHTS_PATTERN_REGEXP_USER)
             _light = _match.group(Hue.LIGHTS_PATTERN_REGEXP_LIGHT)
@@ -124,3 +126,4 @@ class Hue(Ssdp):
         if _payload:            
             _json_string = json.dumps(_payload)
             return format_str(self.json_header, **{'length': (len(_json_string) + 2), 'date': date()}) + _json_string + "\r\n"
+        print(uri, body)
