@@ -3,34 +3,37 @@
 
 import json
 import ubinascii
+import math
 import uhashlib as hashlib
 
 from ssdp.tools import load_from_path, get_mac, format_str, dict_exclude
 
+# https://gist.github.com/mathebox/e0805f72e7db3269ec22
+
+def hsv_to_rgb(h, s, v):
+    i = math.floor(h*6)
+    f = h*6 - i
+    p = v * (1-s)
+    q = v * (1-f*s)
+    t = v * (1-(1-f)*s)
+
+    r, g, b = [
+        (v, t, p),
+        (q, v, p),
+        (p, v, t),
+        (p, q, v),
+        (t, p, v),
+        (v, p, q),
+    ][int(i%6)]
+
+    return r, g, b
+
 def hue_sat_to_rgb(hue, sat):
     hue = hue / 65535.0
     sat = sat / 254.0
+    r, g, b = hsv_to_rgb(hue,sat, 1)
+    return int(r * 255), int(g * 255), int(b * 255)
 
-    chroma = sat * (1 - abs(2 * hue % 2 - 1))
-    x = chroma * (1 - abs((hue * 6) % 2 - 1))
-
-    if hue < 1/6:
-        rgb = (chroma, x, 0)
-    elif hue < 1/3:
-        rgb = (x, chroma, 0)
-    elif hue < 1/2:
-        rgb = (0, chroma, x)
-    elif hue < 2/3:
-        rgb = (0, x, chroma)
-    elif hue < 5/6:
-        rgb = (x, 0, chroma)
-    else:
-        rgb = (chroma, 0, x)
-
-    m = sat - chroma
-    rgb = tuple(int((c + m) * 255) for c in rgb)
-
-    return rgb
 
 def rgb_to_hue_sat(rgb):
     r, g, b = rgb
@@ -105,6 +108,7 @@ class HueDevice():
         self.hue = 0
         self.sat = 0
         self.ct = 500 # TODO:         "ct": {ct}, + colormode: "ct"
+        # effects = 
         self.x = 0.0
         self.y = 0.0
         _hash = hashlib.md5(name + get_mac())

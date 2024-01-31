@@ -4,7 +4,7 @@ import ubinascii
 import uhashlib as hashlib
 
 from ssdp.ssdp import Ssdp
-from ssdp.hue_devices import HueDevice, HueDeviceType, HueDevices, hue_sat_to_rgb, rgb_to_hue_sat
+from alexa.hue_devices import HueDevice, HueDeviceType, HueDevices, hue_sat_to_rgb, rgb_to_hue_sat
 from ssdp.tools import get_hex, load_from_path, get_mac, format_str, dict_exclude, date
 from debugger import Debugger
 import error
@@ -99,6 +99,10 @@ class Hue(Ssdp):
                     if 'on' in _body:
                         if _body['on'] and ('bri' not in _body or not _body['bri']):
                             _body['bri'] = 100
+                        if not 'hue' in _body and not 'ct' in _body:
+                            _body['red'] = 128
+                            _body['green'] = 128
+                            _body['blue'] = 128
                     if 'ct' in _body:
                         _body['colormode'] = 'ct'
                     if 'hue' in _body and 'sat' in _body:

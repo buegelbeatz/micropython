@@ -20,6 +20,9 @@ class Udp(Base):
 
     _udp_handler = []
 
+    def inet_aton(self,addr):
+        return bytes(map(int, addr.split('.')))
+
     @debug.show
     def __init__(self, udp_port=1900, udp_ip="239.255.255.250", ip=None):
         Base.__init__(self)

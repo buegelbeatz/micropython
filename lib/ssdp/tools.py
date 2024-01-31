@@ -7,10 +7,13 @@ def wrapper(f):
     return lambda f:f
 
 def format_str(source, **kwargs):
-    for (key,value) in kwargs.items():
-        _replace ="{" + key + "}"
-        source = source.replace(_replace, str(value))
-    return source
+    if source:
+        for (key,value) in kwargs.items():
+            _replace ="{" + key + "}"
+            source = source.replace(_replace, str(value))
+        return source
+    else:
+        return ''
 
 # async def format_str_stream(source, **kwargs): # TODO: Could also be streamed: load_from_path_stream
 #     _parameter_pattern = re.compile(r"^.*\{[^\s]+\}.*$")

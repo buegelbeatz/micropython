@@ -7,9 +7,6 @@ class Base:
 
     def __init__(self):
         self._received = {}
-
-    def inet_aton(self,addr):
-        return bytes(map(int, addr.split('.')))
     
     def request_frequence_check(self, data, time_ms):
         _hash = hashlib.md5(data)
